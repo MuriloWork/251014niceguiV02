@@ -1,0 +1,22 @@
+{
+    "tipoEvento": [
+        "compra", "contrato", "execução???", "pesquisa", "projeto", "comunicação"
+    ] ,
+    "vinculacoes": [] ,
+    "planejamento": {
+        "indice": "pkm Id Tree" ,
+        "cronograma": {} ,
+        "orcamento": {} 
+    },
+    "docModeloCompra": {
+    },
+    "metadados": {},
+    "links": [
+      ],
+    "notas": "",
+    "tags": [],
+    "controle de datas": {
+      "atualizacao": "",
+      "execucoes": ""
+    }
+}

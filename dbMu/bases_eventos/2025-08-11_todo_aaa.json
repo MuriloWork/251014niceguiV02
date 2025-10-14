@@ -1,0 +1,25 @@
+{
+    "id": "350362fb-fc24-41e1-a800-27fd113fb872",
+    "tipoEvento": "todo",
+    "tipoProjeto": "Fi",
+    "tituloEvento": "aaa",
+    "tags": "",
+    "links": "",
+    "docsPath": null,
+    "metadados": {
+        "stFoldingStatusEvento": false,
+        "stFoldingStatusPlanejamento01": false,
+        "stFoldingStatusPlanejamento02": false,
+        "stFoldingStatusHistorico": false,
+        "stFoldingStatusRelacionamentos": false
+    },
+    "notas": null,
+    "indice": "{}",
+    "pessoas": "{}",
+    "itens": [],
+    "historicoDocTree": null,
+    "historicoLogs": null,
+    "historicoMsgs": null,
+    "relacionamentos como convidado": null,
+    "relacionamentos como anfitriao": null
+}

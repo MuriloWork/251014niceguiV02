@@ -1,0 +1,12 @@
+
+{
+    "metadados": {} ,
+    "item": [
+        "fonte", "titulo", "pc", "moeda", "classificacao", 
+        "vendedor", 
+        "condicoes comerciais", 
+        "dataCotacao"
+    ] ,
+    "tags": [] ,
+    "conteudos": {}
+}

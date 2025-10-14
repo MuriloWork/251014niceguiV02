@@ -1,0 +1,28 @@
+
+{
+    "metadados": {} ,
+    "tipoProjeto": ["Fi", "Km", "Wk", "Bs", "Fm"] ,
+    "tipoEvento": [
+        "empreendimento (tem dedicacao, tem recurso)", 
+        "ordem de servico (tem entrega), projeto, planta, prancha, cenario, vitrine, desenho", 
+        "pesquisa", 
+        "compra, cotação, pgto, contrato", 
+        "comunicação",
+        "programacao, todo" 
+    ] ,
+    "tags": [] ,
+    "links": {} ,
+    "planejamento": {
+        "indice": "/idPkmTree.md" ,
+        "cronograma": {} ,
+        "orcamento": {} ,
+        "pessoas": {}
+    },
+    "notas": "" ,
+    "docModeloTipoEvento": {} ,
+    "execControl": {
+        "atualizacoes": [], "execucoes": []
+    } ,
+    "relacionamentos como convidado": [],
+    "relacionamentos como anfitriao": []
+}

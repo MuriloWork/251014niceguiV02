@@ -1,0 +1,8 @@
+
+{
+    "metadados": {} ,
+    "item": [ "descricao", "qt", "pc", "moeda", "classificacao" ] , 
+    "vendedor": {}, 
+    "condicoes comerciais": {}, 
+    "execControl": {"dataCotacao": "" , "outro": ""} 
+}

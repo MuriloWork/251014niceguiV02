@@ -1,0 +1,48 @@
+{
+    "id": "6a4257b1-8481-4c25-aa3c-77ece99cec20",
+    "tipoEvento": "empreendimento",
+    "tipoProjeto": "Fi",
+    "tituloEvento": "teste aaa",
+    "tags": [],
+    "links": [],
+    "docsPath": "C:\\Users\\muril\\OneDrive\\01 mycloud\\01 sistMu\\20.01 obsidianPkm\\01 do\\2025-07 pjServoNerd\\2025-02-20 sistMu",
+    "metadados": {
+        "stFoldingStatusProjeto": false,
+        "stFoldingStatusPlanejamento01": false,
+        "stFoldingStatusPlanejamento02": false,
+        "stFoldingStatusHistorico": false,
+        "stFoldingStatusRelacionamentos": false
+    },
+    "notas": null,
+    "indice": null,
+    "pessoas": null,
+    "itens": [
+        {
+            "idItem": null,
+            "tipoItem": null,
+            "sku": null,
+            "descricaoItem": "ddddd",
+            "descricaoAlternativa": null,
+            "grupo1": null,
+            "grupo2": null,
+            "tituloAtividade": null,
+            "tituloAtividadeAlternativo": null,
+            "dataCriacao": null,
+            "dataFim": null,
+            "quem": null,
+            "qtd": 0.0,
+            "un": null,
+            "preco": 0.0,
+            "moeda": null,
+            "valorTotal": 0.0,
+            "tipoOrcamento": null,
+            "notas": null,
+            "tags": null
+        }
+    ],
+    "historicoDocTree": null,
+    "historicoLogs": [],
+    "historicoMsgs": [],
+    "relacionamentos como convidado": null,
+    "relacionamentos como anfitriao": null
+}

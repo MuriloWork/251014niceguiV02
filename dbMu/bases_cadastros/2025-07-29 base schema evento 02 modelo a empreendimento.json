@@ -1,0 +1,20 @@
+
+{
+    "metadados": {} ,
+    "tipoProjeto": [] ,
+    "item": [
+        "fonte", "titulo", "pc", "moeda", "classificacao", 
+        "vendedor", 
+        "condicoes comerciais", 
+        "dataCotacao"
+    ] ,
+    "tags": [] ,
+    "conteudos": {} ,
+    "planejamento": {
+        "indice": "pkm Id Tree",
+        "chance = analiseProbabilidade = risco^-1": "" ,
+        "cronograma": {},
+        "orcamento": { "fluxoDeCaixa": "" },
+        "pessoas": {}
+    } 
+}

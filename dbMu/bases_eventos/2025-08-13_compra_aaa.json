@@ -1,0 +1,48 @@
+{
+    "id": "0c73a60f-7010-4e17-b6a5-e1fc0ff0e1bc",
+    "tipoEvento": "compra",
+    "tipoProjeto": "Fi",
+    "tituloEvento": "aaaa",
+    "tags": "",
+    "links": "",
+    "docsPath": null,
+    "metadados": {
+        "stFoldingStatusEvento": false,
+        "stFoldingStatusPlanejamento01": false,
+        "stFoldingStatusPlanejamento02": true,
+        "stFoldingStatusHistorico": false,
+        "stFoldingStatusRelacionamentos": false
+    },
+    "notas": null,
+    "indice": "{}",
+    "pessoas": "{}",
+    "itens": [
+        {
+            "idItem": "357ebd48-579b-4489-8026-721290e1f1ca",
+            "tipoItem": null,
+            "sku": "",
+            "descricaoItem": "Novo Item",
+            "idColumn": "d6806a5c-c58d-4855-aa7a-588f18372833",
+            "grupo1": null,
+            "grupo2": null,
+            "tituloAtividade": null,
+            "tituloAtividadeAlternativo": null,
+            "dataCriacao": null,
+            "dataFim": null,
+            "quem": null,
+            "qtd": null,
+            "un": null,
+            "preco": null,
+            "moeda": null,
+            "valorTotal": null,
+            "tipoOrcamento": null,
+            "notas": null,
+            "tags": null
+        }
+    ],
+    "historicoDocTree": null,
+    "historicoLogs": [],
+    "historicoMsgs": [],
+    "relacionamentos como convidado": null,
+    "relacionamentos como anfitriao": null
+}

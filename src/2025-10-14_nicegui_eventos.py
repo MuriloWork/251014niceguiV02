@@ -15,7 +15,7 @@ import z02_funcPy01api_handling as mu01
 from z04_pydanticEventos import Evento, Metadados, Itens
 
 # --- Constantes e Configuração Inicial ---
-DATA_DIR = Path("30 dbMu/bases_eventos")
+DATA_DIR = Path("dbMu/bases_eventos")
 DATA_DIR.mkdir(exist_ok=True)
 HOST = mu01.get_local_ip()
 
@@ -220,7 +220,6 @@ DEFAULT_ITENS = {
     "notas": "",
     "tags": ""
 }
-
 
 @ui.page('/')
 async def build_ui():                                                                   ## --- Construção da Interface do Usuário (UI) ---

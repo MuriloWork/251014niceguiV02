@@ -1,0 +1,13 @@
+
+{
+    "metadados": {} ,
+    "tipoProjeto": "planta" ,
+    "item": [
+        "fonte", "titulo", "pc", "moeda", "classificacao", 
+        "vendedor", 
+        "condicoes comerciais", 
+        "dataCotacao"
+    ] ,
+    "tags": [] ,
+    "conteudos": {}
+}

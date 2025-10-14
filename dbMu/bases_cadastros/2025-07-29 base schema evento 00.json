@@ -1,0 +1,101 @@
+
+{
+    "modeloBase": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://example.com/product.schema.json",
+        "title": "modeloBase",
+        "description": "schema para eventos",
+        "type": "object",
+        "properties": {
+            "metadados": {
+                "type": "object"
+            },
+            "tipoProjeto": {
+                "type": "string",
+                "enum": [
+                    "Fi",
+                    "Km",
+                    "Wk",
+                    "Bs",
+                    "Fm"
+                ]
+            },
+            "tipoEvento": {
+                "type": "string",
+                "enum": [
+                    "empreendimento",
+                    "os",
+                    "pesquisa",
+                    "compra",
+                    "comunicação",
+                    "todo"
+                ]
+            },
+            "links": {
+                "type": "array"
+            },
+            "tags": {
+                "type": "array"
+            },
+            "notas": {
+                "type": "string"
+            },
+            "planejamento": {
+                "type": "object",
+                "properties": {
+                    "indice": {
+                        "type": "string"
+                    },
+                    "cronoFin": {
+                        "type": "object",
+                        "properties": {
+                            "IdEap": { "type": "string" },
+                            "titulo": { "type": "string" },
+                            "titulo2": { "type": "string" },
+                            "dataFim": { "type": "string" },
+                            "quem": { "type": "string" },
+                            "qtd": { "type": "number" },
+                            "un": { "type": "string" },
+                            "preco": { "type": "number" },
+                            "moeda": { "type": "string" },
+                            "valorTotal": { "type": "number" },
+                            "notas": { "type": "string" }
+                        }
+                    },
+                    "pessoas": {
+                        "type": "object"
+                    }
+                }
+            },
+            "docModeloTipoEvento": {
+                "type": "string"
+            },
+            "controleDeExecucao": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "tipo": {
+                            "type": "string",
+                            "enum": [
+                                "atualizacao",
+                                "execucao"
+                            ]
+                        }
+                    }
+                }
+            },
+            "relacionamentos como convidado": {
+                "type": "string"
+            },
+            "relacionamentos como anfitriao": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "tipoProjeto",
+            "tipoEvento"
+        ],
+        "additionalProperties": false
+    }
+}
