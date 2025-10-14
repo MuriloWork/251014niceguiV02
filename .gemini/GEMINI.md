@@ -100,14 +100,20 @@
     - `README.md`
         - Explica como funciona o aplicativo
     - `src/`
-        - `2025-10-14 nicegui_eventos.py`
+        - `2025-10-14_nicegui_eventos.py`
             - script principal
             - logicas (detalhadas mais abaixo)
                 - será mapeada pelo agente
-        - `2025-10-14 pydanticEventos.py`
+        - `z02_funcPy01api_handling.py`
+            - Captura o IP local
+        - `z04_pydanticEventos.py`
             - schemas pydantic
             - Lógicas
                 - será mapeada pelo agente
+        - `z02_funcPy02doc_handling.py`
+            - sem função, apenas importado por `z02_funcPy04trsf_json.py`
+        - `z02_funcPy04trsf_json.py`
+            - sem função, apenas importado por `z02_funcPy01api_handling.py`
     - `./dbMu/`
         - `bases_eventos/`
             - Estrutura atual de documentos json
@@ -144,11 +150,14 @@
     - logicas
         - Migrar a estrutura de documentos unitários para documentos em banco de dados SQLite
         - Funções de atualização dos documentos voltadas para SQLite
+        - funções existentes devem ser mantidas
+            - iniciar sessão restaurando o evento da ultima sessão
     - requisitos especificos
+        - estrutura atual em json deve ser mantida no sqlite, Não usar estrutura relacional
         - Incluir servidor MCP SQLite no fluxo de desenvolvimento
     - Ação
         - Integração do Servidor MCP: Adicionar as dependências e a configuração inicial para o servidor MCP SQLite.
-        - Mapeamento de Tabelas: Definir as tabelas no banco de dados SQLite que corresponderão aos modelos Pydantic Evento e Itens. Proponho uma estrutura relacional:
+        - Mapeamento de Tabelas: Definir as tabelas no banco de dados SQLite que corresponderão aos modelos Pydantic Evento e Itens.
             - Uma tabela eventos para armazenar os campos do modelo Evento (exceto a lista de itens).
             - Uma tabela itens para armazenar os campos do modelo Itens, com uma chave estrangeira (evento_id) para relacioná-la à tabela eventos.
         - Refatoração das Funções CRUD:

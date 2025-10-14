@@ -11,36 +11,13 @@ from datetime import date, datetime
 import pandas as pd
 import numpy as np
 import socket
-import sqlite3
 import z02_funcPy01api_handling as mu01
 from z04_pydanticEventos import Evento, Metadados, Itens
 
 # --- Constantes e Configuração Inicial ---
-DB_PATH = Path("../dbMu/financeiro.db")
-DB_PATH.parent.mkdir(exist_ok=True)
+DATA_DIR = Path("30 dbMu/bases_eventos")
+DATA_DIR.mkdir(exist_ok=True)
 HOST = mu01.get_local_ip()
-
-# --- Configuração do Banco de Dados ---
-def inicializar_db():
-    """Cria a tabela do banco de dados se ela não existir, usando uma coluna para o JSON."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Tabela única para armazenar os eventos como documentos JSON
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS eventos (
-            id TEXT PRIMARY KEY,            
-            nomeDocumento TEXT NOT NULL,
-            json_data TEXT NOT NULL,
-            data_modificacao TEXT NOT NULL
-        )
-    ''')
-    
-    conn.commit()
-    conn.close()
-    print("Banco de dados SQLite (JSON-centric) inicializado.")
-
-inicializar_db()
 
 # -- Funções
 # --- Funções de sistema, aplicativo                                                    ## --- Funções de sistema, aplicativo
@@ -49,75 +26,96 @@ def inicializar_estado():                                                       
         app.storage.general['caminho_arquivo'] = None
     if 'documento_ativo' not in app.storage.general:
         app.storage.general['documento_ativo'] = None
-    if 'evento_id_ativo' not in app.storage.general:
-        app.storage.general['evento_id_ativo'] = None
     if 'item_selecionado' not in app.storage.general:
         app.storage.general['item_selecionado'] = None
-
-    # Lógica de restauração de sessão a partir do DB
-    evento_id_persistido = app.storage.general.get('evento_id_ativo')
-    if evento_id_persistido and not app.storage.general.get('documento_ativo'):
-        documento = carregar_documento_do_db(evento_id_persistido)
-        if documento:
-            app.storage.general['documento_ativo'] = documento
-            ui.notify("Sessão anterior restaurada.", type='info')
+    
+    # Tenta carregar o último documento da sessão anterior
+    last_file_str = app.storage.general.get('caminho_arquivo_persistente')
+    if last_file_str and not app.storage.general.get('documento_ativo'):
+        last_file = Path(last_file_str)
+        if last_file.exists():
+            app.storage.general['documento_ativo'] = carregar_documento(last_file)
+            app.storage.general['caminho_arquivo'] = str(last_file)
+            ui.notify(f"Sessão anterior restaurada: {last_file.name}", type='info')
+    return last_file_str
 
 # --- Funções de documento                                                              ## --- Funções de documento
-def salvar_documento_no_db():
-    """Pega o documento ativo, valida e salva no banco de dados SQLite."""
+def salvar_documento_atual():                                                           ## doc saving
+    """Pega o documento ativo do estado, valida e salva no arquivo JSON."""
+    path_str = app.storage.general.get('caminho_arquivo')
     documento_ativo = app.storage.general.get('documento_ativo')
-    if not documento_ativo:
+
+    # ui.label(f"tem sku... {str(documento_ativo.get('itens'))}")
+
+    if not path_str or not documento_ativo:
         ui.notify("Nenhum documento ativo para salvar.", type='warning')
         return
 
     try:
-        # 1. Valida os dados com Pydantic
+        # Valida os dados antes de salvar
         documento_validado = Evento.model_validate(documento_ativo)
-        
-        # 2. Prepara os dados para o DB
-        evento_id = documento_validado.id
-        nome_documento = documento_ativo.get('nomeDocumento', f"evento_{evento_id[:8]}") # Fallback
-        json_data = documento_validado.model_dump_json() # Converte o modelo para uma string JSON
-        data_modificacao = datetime.now().isoformat()
-
-        # 3. Salva no banco de dados
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute('''            
-            INSERT OR REPLACE INTO eventos (id, nomeDocumento, json_data, data_modificacao)
-            VALUES (?, ?, ?, ?)''', (evento_id, nome_documento, json_data, data_modificacao))
-        conn.commit()
-        conn.close()
-
-        ui.notify(f"Evento '{nome_documento}' salvo no banco de dados!", type='positive')
-
+        path = Path(path_str)
+        path.parent.mkdir(exist_ok=True)
+        # Converte o modelo diretamente para uma string JSON formatada e a escreve no arquivo.
+        json_string = documento_validado.model_dump_json(by_alias=True, indent=4)
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(json_string)
+        ui.notify(f"Arquivo '{path.name}' salvo com sucesso!", type='positive')
+        # ui.navigate.reload()
     except ValidationError as e:
-        ui.notify(f"Erro de validação ao salvar no DB: {e}", type='negative', multi_line=True)
+        ui.notify(f"Erro de validação ao salvar: {e}", type='negative', multi_line=True)
     except Exception as e:
-        ui.notify(f"Erro ao salvar no banco de dados: {e}", type='negative')
+        ui.notify(f"Erro ao salvar o arquivo: {e}", type='negative')
 
-def carregar_documento_do_db(evento_id: str) -> dict:
-    """Carrega um evento e seus itens do banco de dados SQLite."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+def carregar_documento(path: Path) -> dict:                                             ## doc loading
     try:
-        cursor.execute("SELECT json_data FROM eventos WHERE id = ?", (evento_id,))
-        resultado = cursor.fetchone()
+        with open(path, 'r', encoding='utf-8') as f:
+            dados = json.load(f)
+            
+            # --- MELHORIA: Validação Pydantic-cêntrica ---
+            # Itera sobre cada item e o valida com o modelo 'Itens'.
+            # Isso força o Pydantic a aplicar o 'default_factory' para 'idColumn' se ele não existir.
+            if 'itens' in dados and isinstance(dados['itens'], list):
+                dados['itens'] = [Itens.model_validate(item).model_dump() for item in dados['itens']]
+            # --- FIM DA MELHORIA ---
 
-        if not resultado:
-            ui.notify(f"Evento com ID '{evento_id}' não encontrado no banco de dados.", type='negative')
-            return None
+            Evento.model_validate(dados)
+            return dados
+    except ValidationError as e:
+        ui.notify(f"Validação estrita falhou para '{path.name}'. Tentando recuperação...", type='warning')
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                dados_brutos = json.load(f)
+            dados_corrigidos = dados_brutos.copy()
+            for erro in e.errors():
+                if not erro['loc']: continue
+                campo_com_erro = str(erro['loc'][0])
+                if campo_com_erro in dados_corrigidos:
+                    del dados_corrigidos[campo_com_erro]
+                    ui.notify(f"Campo inválido '{campo_com_erro}' removido para carregar o arquivo.", type='warning')
+            
+            # Garante que os campos essenciais tenham valores padrão se ausentes
+            if 'metadados' not in dados_corrigidos:
+                dados_corrigidos['metadados'] = Metadados().model_dump()
+            if 'itens' not in dados_corrigidos:
+                dados_corrigidos['itens'] = []
+            
+            # --- MELHORIA (TAMBÉM NO BLOCO DE RECUPERAÇÃO) ---
+            # Aplica a mesma lógica robusta para arquivos em modo de recuperação.
+            if 'itens' in dados_corrigidos and isinstance(dados_corrigidos['itens'], list):
+                dados_corrigidos['itens'] = [Itens.model_validate(item).model_dump() for item in dados_corrigidos['itens']]
+            # --- FIM DA MELHORIA ---
 
-        json_data = resultado[0]
-        documento = json.loads(json_data)
-        
-        ui.notify(f"Evento '{documento.get('tituloEvento')}' carregado do banco de dados.", type='positive')
-        return documento
+
+            Evento.model_validate(dados_corrigidos)
+            ui.notify(f"Arquivo '{path.name}' carregado com sucesso no modo de recuperação.", type='positive')
+            return dados_corrigidos
+        except Exception as final_e:
+            ui.notify(f"Falha total ao carregar '{path.name}': {final_e}", type='negative')
+            return Evento(tituloEvento=f"ERRO AO CARREGAR: {path.name}", itens=[Itens().model_dump()], metadados=Metadados()).model_dump()
     except Exception as e:
-        ui.notify(f"Erro ao carregar evento do banco de dados: {e}", type='negative', multi_line=True)
-        return None
-    finally:
-        conn.close()
+        ui.notify(f"Erro inesperado ao carregar o arquivo '{path.name}': {e}", type='negative')
+        return Evento(tituloEvento=f"ERRO AO CARREGAR: {path.name}", itens=[Itens().model_dump()], metadados=Metadados()).model_dump()
 
 async def handle_excel_import(e: events.UploadEventArguments):                          ## doc loading
     """Processa o arquivo Excel enviado pelo usuário e atualiza a grade de itens."""
@@ -133,7 +131,7 @@ async def handle_excel_import(e: events.UploadEventArguments):                  
         itens_validados = [Itens.model_validate(item).model_dump() for item in itens_importados]
 
         app.storage.general['documento_ativo']['itens'] = itens_validados
-        salvar_documento_no_db()
+        salvar_documento_atual()
         ui.notify(f"Itens importados de '{e.name}' e salvos com sucesso!", type='positive')
         ui.navigate.reload()  # Forma recomendada para recarregar a página
     except ValidationError as err:
@@ -141,28 +139,30 @@ async def handle_excel_import(e: events.UploadEventArguments):                  
     except Exception as err:
         ui.notify(f"Erro ao processar o arquivo Excel: {err}", type='negative')
 
-def criar_novo_documento(novo_evento_nome, novo_evento_tipo):
-    """Cria um novo documento de evento e o salva diretamente no banco de dados."""
-    if not novo_evento_nome.value.strip():
-        ui.notify("Por favor, insira um nome para o novo evento.", type='warning')
-        return
-    
-    # Gera o nome do documento no formato de arquivo antigo
+def criar_novo_documento(novo_evento_nome, novo_evento_tipo):                           ## doc creating
     nome_formatado = "".join(c if c.isalnum() else '_' for c in novo_evento_nome.value.strip())
-    nome_documento = f"{date.today():%Y-%m-%d}_{novo_evento_tipo.value}_{nome_formatado}"
+    nome_arquivo = f"{date.today():%Y-%m-%d}_{novo_evento_tipo.value}_{nome_formatado}.json"
+    caminho_arquivo = DATA_DIR / nome_arquivo
+    ui.label(str(caminho_arquivo))
 
+    if caminho_arquivo.exists():
+        ui.notify(f"Arquivo '{nome_arquivo}' já existe.", type='negative')
+        return
+
+    # if not novo_evento_nome.value.strip():
+    #     ui.notify("Por favor, insira um nome para o novo evento.", type='warning')
+    #     return
+    
     novo_doc = Evento(
         tituloEvento=novo_evento_nome.value.strip(),
         tipoEvento=novo_evento_tipo.value, 
         metadados=Metadados(), 
-        itens=[Itens().model_dump()],
-        nomeDocumento=nome_documento  # Adiciona o nome do documento na criação do objeto Pydantic
+        itens=[Itens().model_dump()]
     )
-
-    # O dicionário agora conterá 'nomeDocumento' por padrão
     app.storage.general['documento_ativo'] = novo_doc.model_dump()
-    app.storage.general['evento_id_ativo'] = novo_doc.id
-    salvar_documento_no_db()
+    app.storage.general['caminho_arquivo'] = str(caminho_arquivo)
+    app.storage.general['caminho_arquivo_persistente'] = str(caminho_arquivo)
+    salvar_documento_atual()
     ui.navigate.to('/')
 
 def handle_excel_export():                                                              ## doc saving
@@ -221,10 +221,15 @@ DEFAULT_ITENS = {
     "tags": ""
 }
 
+
 @ui.page('/')
 async def build_ui():                                                                   ## --- Construção da Interface do Usuário (UI) ---
     inicializar_estado()
     documento_ativo = app.storage.general['documento_ativo']
+    
+    last_file = inicializar_estado()                                                    ## debug
+    ui.label(f"last_file:  {str(last_file)}")
+    # ui.label(f"app.storage.general:  {app.storage.general['caminho_arquivo_persistente']}")
 
     drawer_open = True  # estado global do drawer
 
@@ -237,9 +242,8 @@ async def build_ui():                                                           
         ui.label("Meus Eventos").classes('text-2xl')
         ui.space()
         if documento_ativo:
-            # Atualizado para mostrar o título do evento em vez do nome do arquivo
-            ui.label(f"Editando: {documento_ativo.get('nomeDocumento', 'Evento sem título')}").classes('text-sm')
-        ui.button("Salvar", on_click=salvar_documento_no_db, icon='save').props('outline round dense color="white"')
+            ui.label(f"Editando: {Path(app.storage.general.get('caminho_arquivo')).name}").classes('text-sm')
+        ui.button("Salvar", on_click=salvar_documento_atual, icon='save').props('outline round dense color="white"')
 
     with ui.left_drawer(value=drawer_open, top_corner=True, bottom_corner=True).props('width=270') as drawer:        ## --- Barra Lateral (Sidebar) ---
         ui.label("Gerenciar Arquivos").classes('font-bold p-2')
@@ -250,35 +254,30 @@ async def build_ui():                                                           
                 novo_evento_nome = ui.input("Nome do Evento").props('dense').classes('w-full')
                 tipo_evento_options = list(get_args(Evento.model_fields['tipoEvento'].annotation))
                 novo_evento_tipo = ui.select(tipo_evento_options, value="compra", label="Tipo").props('dense').classes('w-full')
+            
+                nome_formatado = "".join(c if c.isalnum() else '_' for c in novo_evento_nome.value.strip())
+                nome_arquivo = f"{date.today():%Y-%m-%d}_{novo_evento_tipo.value}_{nome_formatado}.json"
+                caminho_arquivo = DATA_DIR / nome_arquivo
+                # ui.label(str(caminho_arquivo))                                          ## quero exibir o nome durante a digitaçao
 
             # ui.button(f"Criar Novo  {str(nome_arquivo.value)}", on_click=lambda: criar_novo_documento(novo_evento_nome, novo_evento_tipo)).props('flat dense')
             ui.button(f"Criar Novo", on_click=lambda: criar_novo_documento(novo_evento_nome, novo_evento_tipo)).props('flat dense')
 
         ui.separator().classes('my-4')
 
-        def listar_eventos_db():
-            try:
-                conn = sqlite3.connect(DB_PATH)
-                cursor = conn.cursor()
-                cursor.execute("SELECT id, nomeDocumento FROM eventos ORDER BY data_modificacao DESC")
-                eventos = cursor.fetchall()
-                conn.close()
-                return eventos
-            except Exception as e:
-                print(f"Erro ao listar eventos do DB: {e}")
-                return []
+        arquivos_existentes = sorted([f.name for f in DATA_DIR.glob("*.json")])
 
-        eventos_existentes = listar_eventos_db()
-
-        def abrir_selecionado(evento_id: str):
-            if evento_id:
-                documento = carregar_documento_do_db(evento_id)
-                app.storage.general['documento_ativo'] = documento
-                app.storage.general['evento_id_ativo'] = evento_id
+        def abrir_selecionado(nome_arquivo):
+            if nome_arquivo:
+                caminho = DATA_DIR / nome_arquivo
+                app.storage.general['documento_ativo'] = carregar_documento(caminho)
+                app.storage.general['caminho_arquivo'] = str(caminho)
+                app.storage.general['caminho_arquivo_persistente'] = str(caminho)
                 ui.navigate.to('/')
         
         ui.label("Abrir Existente").classes('text-md font-semibold p-2')
-        for evento_id, nome_doc in eventos_existentes: ui.button(nome_doc, on_click=lambda eid=evento_id: abrir_selecionado(eid)).props('flat dense text-left').classes('text-xs')
+        for arquivo in arquivos_existentes:
+            ui.button(arquivo, on_click=lambda a=arquivo: abrir_selecionado(a)).props('flat dense text-left').classes('text-xs lowercase')
 
     btn_menu.on_click(drawer.toggle)
 
@@ -287,7 +286,7 @@ async def build_ui():                                                           
         with ui.card().classes('w-full max-w-screen-xl'):                                   ## --- Formulário Principal ---
             with ui.card().classes('w-full'):                                               ## --- Seção Evento --- # O estado de expansão (aberto/fechado) é um booleano. Como 'metadados' agora é uma lista de objetos, vinculamos o estado do painel a um campo booleano dentro do *primeiro* objeto dessa lista. Isso assume que a lista 'metadados' não estará vazia.
                 with ui.expansion(
-                    f'Evento: {documento_ativo["tituloEvento"]}' + '             ' + f'Documento: {documento_ativo["nomeDocumento"]}',
+                    f'Evento: {documento_ativo["tituloEvento"]}',
                     value=documento_ativo["metadados"].get("stFoldingStatusEvento", False)
                     )\
                     .classes("w-full"):
@@ -606,7 +605,7 @@ async def build_ui():                                                           
                                     with aviso_grid:
                                         ui.label(f'item adicionado e selecionado após posição {index_selec}')
 
-                                    salvar_documento_no_db()                                ## não precisa mais de update!!!
+                                    salvar_documento_atual()                                ## não precisa mais de update!!!
 
                                     await grid.run_row_method(item_selec, 'setSelected', True)
 
@@ -658,7 +657,7 @@ async def build_ui():                                                           
                                         documento_ativo['itens'].pop(index_insercao)
                                         return
 
-                                    salvar_documento_no_db()
+                                    salvar_documento_atual()
                                     aviso_grid.clear()
                                     with aviso_grid:
                                         ui.label(f"Item copiado e inserido na posição {index_insercao}.")
@@ -683,7 +682,7 @@ async def build_ui():                                                           
 
                                     grid.run_grid_method('applyTransaction', {'remove': linhas_selecionadas})       ## 3. Informar à grade do cliente para remover as linhas. A grade usará o ID de cada linha para encontrá-la e removê-la.
 
-                                    salvar_documento_no_db()                                                    ## 4. Salvar o documento com os itens removidos.
+                                    salvar_documento_atual()                                                    ## 4. Salvar o documento com os itens removidos.
 
                                     ui.notify(f'{len(linhas_selecionadas)} item(s) removido(s).', type='positive')      ## 5. Notificar o usuário do sucesso.
                                 ui.button("Excluir", on_click=remove_selected, icon='remove', color='negative')\
@@ -812,7 +811,7 @@ async def build_ui():                                                           
                                 if item.get('idColumn') == row_id:
                                     itens_list[i] = modified
                                     ui.notify(f"Item '{item.get('descricaoItem', row_id)}' atualizado.", type='info')
-                                    salvar_documento_no_db()
+                                    salvar_documento_atual()
                                     break
 
                         async def on_grid_selection_change():
@@ -1041,7 +1040,8 @@ async def build_ui():                                                           
                     #                         itens_atualizados.append(itens_no_documento_ativo)
                     #                         aplicados += 1
                     #                 if itens_atualizados:
-                    #                     await grid.run_grid_method('applyTransaction', {'update': itens_atualizados}) #                     salvar_documento_no_db()
+                    #                     await grid.run_grid_method('applyTransaction', {'update': itens_atualizados})
+                    #                 salvar_documento_atual()
                     #                 ui.notify(f"Campo '{campo}' distribuído em {aplicados} itens.", type='positive')
 
                     #             def ligar_handler_valor(comp, campo: str):
@@ -1295,7 +1295,7 @@ async def build_ui():                                                           
 
                                     if itens_atualizados:
                                         await grid.run_grid_method('applyTransaction', {'update': itens_atualizados})
-                                    salvar_documento_no_db()
+                                    salvar_documento_atual()
                                     ui.notify(f"Campo '{campo}' distribuído em {aplicados} itens.", type='positive')
 
                                 def ligar_handler_valor(comp, campo: str):
@@ -1447,3 +1447,4 @@ async def build_ui():                                                           
         ui.label("Crie um novo documento ou abra um existente na barra lateral para começar.").classes('m-4 text-xl')
 
 ui.run(storage_secret='MINHA_CHAVE_SECRETA_MUITO_LONGA_E_SEGURA', host=HOST, port=8080)
+

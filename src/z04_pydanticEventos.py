@@ -131,6 +131,7 @@ class ControleExecucaoItem(BaseModel):
 class Evento(BaseModel):
     # Evento
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Identificador único do evento.", readOnly=True)
+    nomeDocumento: Optional[str] = None
     tipoEvento: Literal["empreendimento", "os", "todo", "compra", "pesquisa", "comunicacao"] = "todo"
     tipoProjeto: Literal["Fi", "Km", "Wk", "Bs", "Fm"] = "Fi"
     tituloEvento: str
