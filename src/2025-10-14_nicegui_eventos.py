@@ -31,7 +31,12 @@ def get_local_ip():
 # --- Constantes e Configuração Inicial ---
 DB_PATH = Path("../dbMu/financeiro.db")
 DB_PATH.parent.mkdir(exist_ok=True)
-HOST = get_local_ip()
+
+# Detecta o ambiente para definir o HOST corretamente.
+if 'PYTHONANYWHERE_DOMAIN' in os.environ:
+    HOST = '0.0.0.0'  # Necessário para o ambiente de servidor do PythonAnywhere
+else:
+    HOST = get_local_ip() # Usa o IP local para desenvolvimento
 
 # --- Configuração do Banco de Dados ---
 def inicializar_db():
