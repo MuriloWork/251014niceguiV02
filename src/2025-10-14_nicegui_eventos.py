@@ -1519,4 +1519,4 @@ async def build_ui():                                                           
 
 app.on_shutdown(salvar_estado_no_db)
 # Desativamos o storage_secret para que o NiceGUI não tente mais usar o arquivo JSON.
-ui.run(host=HOST, port=8080, reload=False, show=False, title='muWorkApp')
+ui.run(host=HOST, port=8080, reload=True, show=True, title='muWorkApp')
