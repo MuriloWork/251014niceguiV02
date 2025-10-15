@@ -602,7 +602,7 @@ async def build_ui():                                                           
                                         documento_ativo['itens'].pop(index_insercao)
                                         return
 
-                                    salvar_documento_atual()
+                                    salvar_documento_no_db()
                                     aviso_grid.clear()
                                     with aviso_grid:
                                         ui.label(f"Item copiado e inserido na posição {index_insercao}.")
