@@ -12,8 +12,21 @@ import pandas as pd
 import numpy as np
 import socket
 import sqlite3
-from z02_funcPy01api_handling import get_local_ip
 from z04_pydanticEventos import Evento, Metadados, Itens
+
+# --- Funções Utilitárias ---
+def get_local_ip():
+    """Obtém o endereço IP local da máquina na rede."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # Tenta conectar a um IP não roteável para descobrir a interface de rede principal
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1' # Fallback para localhost
+    finally:
+        s.close()
+    return IP
 
 # --- Constantes e Configuração Inicial ---
 DB_PATH = Path("../dbMu/financeiro.db")
