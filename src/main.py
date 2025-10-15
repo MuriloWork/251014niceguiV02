@@ -29,10 +29,11 @@ def get_local_ip():
     return IP
 
 # --- Constantes e Configuração Inicial ---
-# DB_PATH = Path("../dbMu/financeiro.db")
-# DB_PATH.parent.mkdir(exist_ok=True)
-DB_PATH = os.path.join(os.path.dirname(__file__) , "../dbMu/financeiro.db")
-
+# Constrói um caminho absoluto para o banco de dados, robusto para qualquer ambiente.
+# __file__ é o caminho do script atual (main.py)
+# os.path.dirname(__file__) é o diretório 'src'
+# os.path.join(..., '..', 'dbMu', 'financeiro.db') sobe um nível e entra em dbMu
+DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dbMu', 'financeiro.db'))
 db_dir = os.path.dirname(DB_PATH)
 os.makedirs(db_dir, exist_ok=True)
 
@@ -1522,28 +1523,3 @@ async def build_ui():                                                           
         ui.label("Crie um novo documento ou abra um existente na barra lateral para começar.").classes('m-4 text-xl')
 
 app.on_shutdown(salvar_estado_no_db)
-# Desativamos o storage_secret para que o NiceGUI não tente mais usar o arquivo JSON.
-# ui.run(host=HOST, port=8080, reload=True, show=True, title='muWorkApp')
-
-app.on_shutdown(salvar_estado_no_db)
-
-# NO FINAL DO main.py:
-app.on_shutdown(salvar_estado_no_db)
-
-# Esta configuração permite rodar localmente E no PythonAnywhere
-if __name__ == "__main__":
-    # Verifica se não está em ambiente de produção (PythonAnywhere)
-    is_production = 'PYTHONANYWHERE_DOMAIN' in os.environ
-    is_replit = 'REPLIT' in os.environ
-    
-    if not is_production and not is_replit:
-        print(f"Iniciando aplicativo localmente em http://{HOST}:8080")
-        ui.run(
-            host=HOST, 
-            port=8080, 
-            reload=False,  # Desativa reload para evitar problemas
-            show=True, 
-            title='muWorkApp - Local'
-        )
-    else:
-        print("Aplicativo pronto para produção (PythonAnywhere/Replit)")
