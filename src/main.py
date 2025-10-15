@@ -29,7 +29,8 @@ def get_local_ip():
     return IP
 
 # --- Constantes e Configuração Inicial ---
-DB_PATH = Path("../dbMu/financeiro.db")
+# DB_PATH = Path("../dbMu/financeiro.db")
+DB_PATH = os.path.join(os.path.dirname(__file__) , "../dbMu/financeiro.db")
 DB_PATH.parent.mkdir(exist_ok=True)
 
 # Detecta o ambiente para definir o HOST corretamente.
@@ -1519,4 +1520,4 @@ async def build_ui():                                                           
 
 app.on_shutdown(salvar_estado_no_db)
 # Desativamos o storage_secret para que o NiceGUI não tente mais usar o arquivo JSON.
-ui.run(host=HOST, port=8080, reload=True, show=True, title='muWorkApp')
+# ui.run(host=HOST, port=8080, reload=True, show=True, title='muWorkApp')
