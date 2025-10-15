@@ -6,6 +6,3 @@ xlsxwriter
 jsonschema
 json-converter
 genson
-google-api-python-client
-google-auth-oauthlib
-google-auth-transport
