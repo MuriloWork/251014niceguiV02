@@ -30,8 +30,11 @@ def get_local_ip():
 
 # --- Constantes e Configuração Inicial ---
 # DB_PATH = Path("../dbMu/financeiro.db")
+# DB_PATH.parent.mkdir(exist_ok=True)
 DB_PATH = os.path.join(os.path.dirname(__file__) , "../dbMu/financeiro.db")
-DB_PATH.parent.mkdir(exist_ok=True)
+
+db_dir = os.path.dirname(DB_PATH)
+os.makedirs(db_dir, exist_ok=True)
 
 # Detecta o ambiente para definir o HOST corretamente.
 if 'PYTHONANYWHERE_DOMAIN' in os.environ:
