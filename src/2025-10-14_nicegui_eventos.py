@@ -6,7 +6,7 @@ from pathlib import Path
 import json, uuid
 from typing import get_args, List, Dict, Any
 from pydantic import BaseModel, ValidationError
-import datetime
+import datetime, pickle, base64, copy
 from datetime import date, datetime
 import pandas as pd
 import numpy as np
@@ -35,6 +35,14 @@ def inicializar_db():
             data_modificacao TEXT NOT NULL
         )
     ''')
+
+    # Tabela para substituir o storage-general.json
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS app_storage (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    ''')
     
     conn.commit()
     conn.close()
@@ -43,24 +51,65 @@ def inicializar_db():
 inicializar_db()
 
 # -- Funções
-# --- Funções de sistema, aplicativo                                                    ## --- Funções de sistema, aplicativo
-def inicializar_estado():                                                               ## sys app, Inicialização do Estado da Aplicação
-    if 'caminho_arquivo' not in app.storage.general:
-        app.storage.general['caminho_arquivo'] = None
-    if 'documento_ativo' not in app.storage.general:
-        app.storage.general['documento_ativo'] = None
-    if 'evento_id_ativo' not in app.storage.general:
-        app.storage.general['evento_id_ativo'] = None
-    if 'item_selecionado' not in app.storage.general:
-        app.storage.general['item_selecionado'] = None
+def to_plain_python(obj):
+    """Converte recursivamente ObservableDicts e ObservableLists para dicts e lists padrão."""
+    # Compara o nome do tipo em vez de importar a classe, o que é mais robusto.
+    obj_type_name = type(obj).__name__
+    if obj_type_name == 'ObservableDict':
+        return {k: to_plain_python(v) for k, v in obj.items()}
+    if obj_type_name == 'ObservableList':
+        return [to_plain_python(i) for i in obj]
+    return obj
 
-    # Lógica de restauração de sessão a partir do DB
-    evento_id_persistido = app.storage.general.get('evento_id_ativo')
-    if evento_id_persistido and not app.storage.general.get('documento_ativo'):
-        documento = carregar_documento_do_db(evento_id_persistido)
-        if documento:
-            app.storage.general['documento_ativo'] = documento
-            ui.notify("Sessão anterior restaurada.", type='info')
+# --- Funções de sistema, aplicativo                                                    ## --- Funções de sistema, aplicativo
+def salvar_estado_no_db():
+    """Salva o conteúdo de app.storage.general na tabela app_storage."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        for key, value in app.storage.general.items():
+            # Converte de forma robusta os tipos observáveis do NiceGUI para tipos Python padrão.
+            standard_value = to_plain_python(value)
+
+            # Serializa o objeto Python padrão.
+            pickled_value = pickle.dumps(standard_value)
+            encoded_value = base64.b64encode(pickled_value).decode('utf-8')
+            cursor.execute(
+                "INSERT OR REPLACE INTO app_storage (key, value) VALUES (?, ?)",
+                (key, encoded_value)
+            )
+        conn.commit()
+        conn.close()
+        # ui.notify("Estado da aplicação salvo.", type='info')
+    except Exception as e:
+        print(f"Erro ao salvar estado da aplicação no DB: {e}")
+
+def inicializar_estado():
+    """Carrega o estado da aplicação da tabela app_storage para app.storage.general."""
+    # Primeiro, garante que as chaves essenciais existam com valores padrão.
+    # Isso evita o KeyError na primeira execução ou com um DB vazio.
+    for key in ['documento_ativo', 'evento_id_ativo', 'item_selecionado']:
+        if key not in app.storage.general:
+            app.storage.general[key] = None
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM app_storage")
+        rows = cursor.fetchall()
+        conn.close()
+
+        for key, encoded_value in rows:
+            pickled_value = base64.b64decode(encoded_value)
+            value = pickle.loads(pickled_value)
+            app.storage.general[key] = value
+        
+        if rows:
+            ui.notify("Estado da aplicação restaurado do banco de dados.", type='info')
+
+    except Exception as e:
+        print(f"Erro ao inicializar estado do DB: {e}")
 
 # --- Funções de documento                                                              ## --- Funções de documento
 def salvar_documento_no_db():
@@ -90,6 +139,8 @@ def salvar_documento_no_db():
         conn.close()
 
         ui.notify(f"Evento '{nome_documento}' salvo no banco de dados!", type='positive')
+        # Após salvar o documento, salva também o estado geral da aplicação
+        salvar_estado_no_db()
 
     except ValidationError as e:
         ui.notify(f"Erro de validação ao salvar no DB: {e}", type='negative', multi_line=True)
@@ -275,6 +326,8 @@ async def build_ui():                                                           
                 documento = carregar_documento_do_db(evento_id)
                 app.storage.general['documento_ativo'] = documento
                 app.storage.general['evento_id_ativo'] = evento_id
+                # Salva o novo estado (com o documento recém-carregado) no DB
+                salvar_estado_no_db()
                 ui.navigate.to('/')
         
         ui.label("Abrir Existente").classes('text-md font-semibold p-2')
@@ -1446,4 +1499,6 @@ async def build_ui():                                                           
     else:
         ui.label("Crie um novo documento ou abra um existente na barra lateral para começar.").classes('m-4 text-xl')
 
-ui.run(storage_secret='MINHA_CHAVE_SECRETA_MUITO_LONGA_E_SEGURA', host=HOST, port=8080)
+app.on_shutdown(salvar_estado_no_db)
+# Desativamos o storage_secret para que o NiceGUI não tente mais usar o arquivo JSON.
+ui.run(host=HOST, port=8080)
