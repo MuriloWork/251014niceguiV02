@@ -1524,3 +1524,26 @@ async def build_ui():                                                           
 app.on_shutdown(salvar_estado_no_db)
 # Desativamos o storage_secret para que o NiceGUI não tente mais usar o arquivo JSON.
 # ui.run(host=HOST, port=8080, reload=True, show=True, title='muWorkApp')
+
+app.on_shutdown(salvar_estado_no_db)
+
+# NO FINAL DO main.py:
+app.on_shutdown(salvar_estado_no_db)
+
+# Esta configuração permite rodar localmente E no PythonAnywhere
+if __name__ == "__main__":
+    # Verifica se não está em ambiente de produção (PythonAnywhere)
+    is_production = 'PYTHONANYWHERE_DOMAIN' in os.environ
+    is_replit = 'REPLIT' in os.environ
+    
+    if not is_production and not is_replit:
+        print(f"Iniciando aplicativo localmente em http://{HOST}:8080")
+        ui.run(
+            host=HOST, 
+            port=8080, 
+            reload=False,  # Desativa reload para evitar problemas
+            show=True, 
+            title='muWorkApp - Local'
+        )
+    else:
+        print("Aplicativo pronto para produção (PythonAnywhere/Replit)")
