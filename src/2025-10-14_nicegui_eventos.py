@@ -12,13 +12,13 @@ import pandas as pd
 import numpy as np
 import socket
 import sqlite3
-import z02_funcPy01api_handling as mu01
+from z02_funcPy01api_handling import get_local_ip
 from z04_pydanticEventos import Evento, Metadados, Itens
 
 # --- Constantes e Configuração Inicial ---
 DB_PATH = Path("../dbMu/financeiro.db")
 DB_PATH.parent.mkdir(exist_ok=True)
-HOST = mu01.get_local_ip()
+HOST = get_local_ip()
 
 # --- Configuração do Banco de Dados ---
 def inicializar_db():
