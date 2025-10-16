@@ -67,13 +67,24 @@ cd ~/251014niceguiV02/src && python run_server.py
 # Site ASGI via Linha de Comando
 pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} main:app'
 
-# reload
+## reload
 pa website reload --domain muwork01.pythonanywhere.com
 
 
-# Para ver o final do arquivo de log
+## Para ver o final do arquivo de log
 tail /var/log/muwork01.pythonanywhere.com.error.log
 
-# Para ver o log de servidor (requisições)
+## Para ver o log de servidor (requisições)
 tail /var/log/muwork01.pythonanywhere.com.server.log
+
+# Substituir Site
+
+## 1. Deleta a configuração atual do site
+pa website delete --domain muwork01.pythonanywhere.com
+
+## 2. Cria uma nova configuração apontando para o test_app.py
+## A única mudança é no final: 'test_app:app'
+pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} test_app:app'
+
+pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} --no-lifespan test_app:app'
 
