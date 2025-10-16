@@ -126,9 +126,6 @@ def inicializar_estado():
             pickled_value = base64.b64decode(encoded_value)
             value = pickle.loads(pickled_value)
             app.storage.general[key] = value
-        
-        if rows:
-            ui.notify("Estado da aplicação restaurado do banco de dados.", type='info')
 
     except Exception as e:
         print(f"Erro ao inicializar estado do DB: {e}")
@@ -297,6 +294,10 @@ DEFAULT_ITENS = {
 @ui.page('/')
 async def build_ui():                                                                   ## --- Construção da Interface do Usuário (UI) ---
     documento_ativo = app.storage.general.get('documento_ativo')
+
+    # Notificação de estado restaurado (movida para cá para garantir que a UI esteja pronta)
+    if app.storage.general.get('evento_id_ativo'):
+        ui.notify("Estado da aplicação restaurado.", type='info')
 
     drawer_open = True  # estado global do drawer
 
