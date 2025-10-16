@@ -291,8 +291,7 @@ DEFAULT_ITENS = {
     "tags": ""
 }
 
-@ui.page('/')
-async def build_ui():                                                                   ## --- Construção da Interface do Usuário (UI) ---
+def setup_ui():
     documento_ativo = app.storage.general.get('documento_ativo')
 
     drawer_open = True  # estado global do drawer
@@ -1517,16 +1516,14 @@ async def build_ui():                                                           
     else:
         ui.label("Crie um novo documento ou abra um existente na barra lateral para começar.").classes('m-4 text-xl')
 
+# --- Ponto de Entrada da UI ---
+# Registra a função que constrói a interface do usuário para a rota raiz.
+# Isso garante que a UI só seja construída quando um cliente se conecta.
+ui.page('/')(setup_ui)
+
 # --- Application Lifecycle Events ---
 # Initialize the application state when the server starts up.
 app.on_startup(inicializar_estado)
 
 # Save the application's general state when the server shuts down.
 app.on_shutdown(salvar_estado_no_db)
-
-# A guarda `if __name__ in {"__main__", "__mp_main__"}` garante que `ui.run()`
-# seja chamado apenas quando o script é executado diretamente.
-# Isso é essencial para o desenvolvimento local e não interfere na implantação com Uvicorn.
-# if __name__ in {"__main__", "__mp_main__"}:
-# ui.run(host=HOST, port=8080, reload=True, show=True, title='muWorkApp')
-ui.run()
