@@ -1,0 +1,23 @@
+# Navegue até a pasta do projeto
+cd ~/251014niceguiV02
+
+# Garanta que não há um venv antigo/incompleto
+rm -rf venv
+
+# Crie o novo ambiente virtual
+python3.13 -m venv venv
+
+# Ative o ambiente
+source venv/bin/activate
+
+# Instale as dependências a partir do seu requirements.txt
+pip install -r requirements.txt
+
+source ~/251014niceguiV02/venv/bin/activate
+
+
+# 1. Ativa o ambiente virtual
+source ~/251014niceguiV02/venv/bin/activate
+
+# 2. Navega para a pasta do código e inicia o servidor
+cd ~/251014niceguiV02/src && python run_server.py

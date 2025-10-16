@@ -8,4 +8,4 @@ from main import ui
 PORT = 8000
 
 print(f"Iniciando servidor NiceGUI na porta {PORT}")
-ui.run(host='0.0.0.0', port=PORT)
+ui.run(host='127.0.0.1', port=PORT)
