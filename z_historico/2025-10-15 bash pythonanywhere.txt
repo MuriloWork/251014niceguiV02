@@ -1,3 +1,4 @@
+
 # pythonAnywhere
 # run_server.py
 
@@ -61,4 +62,14 @@ cd ~/251014niceguiV02/src && python run_server.py
         Isso aconteceu porque a parte interna do seu comando, $(netstat ... | grep ... | awk ... | cut ...) não encontrou nenhum processo usando a porta 8000.
         Como nenhum processo foi encontrado, a parte interna retornou um resultado vazio.
         O comando final que o sistema tentou executar foi kill -9 (sem nada depois), o que é uma sintaxe inválida e por isso ele mostrou a mensagem de "como usar".
+
+
+# Site ASGI via Linha de Comando
+pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} main:app'
+
+# Para ver o final do arquivo de log
+tail /var/log/muwork01.pythonanywhere.com.error.log
+
+# Para ver o log de servidor (requisições)
+tail /var/log/muwork01.pythonanywhere.com.server.log
 

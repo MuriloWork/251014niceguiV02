@@ -29,11 +29,10 @@ def get_local_ip():
     return IP
 
 # --- Constantes e Configuração Inicial ---
-# Constrói um caminho absoluto para o banco de dados, robusto para qualquer ambiente.
-# __file__ é o caminho do script atual (main.py)
-# os.path.dirname(__file__) é o diretório 'src'
-# os.path.join(..., '..', 'dbMu', 'financeiro.db') sobe um nível e entra em dbMu
-DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dbMu', 'financeiro.db'))
+# Define um caminho absoluto para o banco de dados, que é a forma mais robusta para ambientes de servidor.
+# Isso garante que o caminho funcione independentemente de onde o script é executado.
+# ATENÇÃO: Substitua 'muWork01' pelo seu nome de usuário real no PythonAnywhere.
+DB_PATH = '/home/muWork01/251014niceguiV02/dbMu/financeiro.db'
 db_dir = os.path.dirname(DB_PATH)
 os.makedirs(db_dir, exist_ok=True)
 
@@ -297,8 +296,7 @@ DEFAULT_ITENS = {
 
 @ui.page('/')
 async def build_ui():                                                                   ## --- Construção da Interface do Usuário (UI) ---
-    inicializar_estado()
-    documento_ativo = app.storage.general['documento_ativo']
+    documento_ativo = app.storage.general.get('documento_ativo')
 
     drawer_open = True  # estado global do drawer
 
@@ -1522,4 +1520,9 @@ async def build_ui():                                                           
     else:
         ui.label("Crie um novo documento ou abra um existente na barra lateral para começar.").classes('m-4 text-xl')
 
+# --- Eventos do Ciclo de Vida da Aplicação ---
+# A inicialização do estado é movida para o evento on_connect para garantir que o servidor esteja pronto.
+app.on_connect(inicializar_estado)
+
+# Salva o estado geral da aplicação quando o servidor é desligado.
 app.on_shutdown(salvar_estado_no_db)

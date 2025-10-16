@@ -1,38 +1,30 @@
-# Conteúdo CORRIGIDO e FINAL para o arquivo muwork01_pythonanywhere_com_wsgi.py
+# Este é o arquivo de configuração WSGI para o PythonAnywhere.
+# Ele usa a biblioteca 'a2wsgi' para servir um aplicativo ASGI (NiceGUI/FastAPI) em um servidor WSGI.
 
-import requests
-from flask import Flask, request, Response
+import sys
+import os
+from a2wsgi import ASGIMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
-# Aponta para o servidor NiceGUI que está rodando internamente no console.
-# Usar 127.0.0.1 é crucial para a comunicação interna no servidor.
-SERVER_URL = "http://127.0.0.1:8001"
+# --- PASSO 1: Adicionar o diretório do seu código-fonte ao path ---
+# O caminho deve apontar para a pasta que contém o seu 'main.py', ou seja, a pasta 'src'.
+path = '/home/muWork01/251014niceguiV02/src'
+if path not in sys.path:
+    sys.path.insert(0, path)
 
-app = Flask(__name__)
+# --- PASSO 2: Mudar o diretório de trabalho ---
+# Isso força o script a ser executado a partir da pasta 'src', garantindo
+# que caminhos relativos (como o do banco de dados) funcionem.
+os.chdir(path)
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-def proxy(path):
-    try:
-        # Encaminha a requisição para o servidor NiceGUI
-        response = requests.request(
-            method=request.method,
-            url=f"{SERVER_URL}/{path}",
-            headers={key: value for (key, value) in request.headers if key != 'Host'},
-            data=request.get_data(),
-            cookies=request.cookies,
-            allow_redirects=False,
-            stream=True
-        )
+# --- PASSO 3: Importar o app ASGI, aplicar o middleware de proxy e criar a ponte WSGI ---
+# O objeto 'app' do NiceGUI contém a instância do FastAPI subjacente.
+from nicegui import app
 
-        # Retorna a resposta do servidor NiceGUI para o navegador do usuário
-        return Response(
-            response.iter_content(chunk_size=1024),
-            status=response.status_code,
-            headers=dict(response.headers)
-        )
-    except requests.exceptions.ConnectionError:
-        # Mensagem de erro amigável se o servidor NiceGUI (no console) não estiver rodando
-        return "<h1>503 Serviço Indisponível</h1><p>O servidor principal do aplicativo (NiceGUI) não parece estar em execução. Por favor, inicie-o em um console Bash no PythonAnywhere.</p>", 503
+# Envolve o app NiceGUI/FastAPI com o middleware.
+# Isso o instrui a confiar nos cabeçalhos X-Forwarded-* enviados pelo proxy do PythonAnywhere.
+proxied_app = ProxyHeadersMiddleware(app, trusted_hosts="*")
 
 # A variável 'application' é o que o servidor do PythonAnywhere procura.
-application = app
+# ASGIMiddleware "traduz" o app ASGI do NiceGUI para a "língua" WSGI.
+application = ASGIMiddleware(proxied_app)
