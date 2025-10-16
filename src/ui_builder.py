@@ -144,11 +144,13 @@ def inicializar_estado(DB_PATH):
 
 
 def build_ui(DB_PATH):
+    print("--- ui_builder.py: build_ui() function started ---")
     """
     Esta função contém toda a lógica de construção da interface do usuário.
     Ela é chamada pelo main.py depois que o servidor já está no ar.
     """
     documento_ativo = app.storage.general.get('documento_ativo')
+    print(f"--- ui_builder.py: documento_ativo is {'present' if documento_ativo else 'None'} ---")
 
     drawer_open = True
 
@@ -211,4 +213,6 @@ def build_ui(DB_PATH):
             # seja ajustada para passar o DB_PATH, por exemplo:
             # on_click=lambda: sua_funcao(DB_PATH)
     else:
+        print("--- ui_builder.py: No documento_ativo, showing initial message ---")
         ui.label("Crie um novo documento ou abra um existente na barra lateral para começar.").classes('m-4 text-xl')
+    print("--- ui_builder.py: build_ui() function finished ---")

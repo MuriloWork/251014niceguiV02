@@ -1,3 +1,5 @@
+print("--- main.py: Top of file ---")
+
 from nicegui import ui, app, events
 import os, io
 import json, uuid
@@ -8,12 +10,16 @@ from datetime import date, datetime
 import socket
 import sqlite3
 
+print("--- main.py: Standard imports complete ---")
+
 # Importa a função que constrói a UI e as funções de manipulação de dados
 from ui_builder import build_ui, salvar_estado_no_db, inicializar_estado
 
+print("--- main.py: ui_builder imported ---")
+
 # --- Funções Utilitárias ---
 def get_local_ip():
-    """Obtém o endereço IP local da máquina na rede."""
+    # print("--- main.py: get_local_ip() called ---")
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(('10.255.255.255', 1))
@@ -28,14 +34,17 @@ def get_local_ip():
 DB_PATH = '/home/muWork01/251014niceguiV02/dbMu/financeiro.db'
 db_dir = os.path.dirname(DB_PATH)
 os.makedirs(db_dir, exist_ok=True)
+print(f"--- main.py: DB_PATH set to {DB_PATH} ---")
 
 if 'PYTHONANYWHERE_DOMAIN' in os.environ:
     HOST = '0.0.0.0'
 else:
     HOST = get_local_ip()
+print(f"--- main.py: HOST set to {HOST} ---")
 
 # --- Inicialização do Banco de Dados ---
 def inicializar_db():
+    print("--- main.py: inicializar_db() called ---")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
@@ -57,21 +66,30 @@ def inicializar_db():
     
     conn.commit()
     conn.close()
-    print("Banco de dados SQLite (JSON-centric) inicializado.")
+    print("--- main.py: inicializar_db() finished ---")
 
 inicializar_db()
 
-# --- Ponto de Entrada da UI ---
-# Registra a função que constrói a interface do usuário para a rota raiz.
-# A função `build_ui` recebe o caminho do banco de dados como argumento.
-ui.page('/')(lambda: build_ui(DB_PATH))
+print("--- main.py: Before @ui.page decorator ---")
+# --- Definição da Página Principal ---
+# Usamos o decorador @ui.page para registrar a função.
+# Isso garante que a função `build_ui` só será executada quando um cliente se conectar.
+@ui.page('/')
+def main_page():
+    print("--- main.py: main_page() function is executing ---")
+    build_ui(DB_PATH)
+
+print("--- main.py: After @ui.page decorator ---")
 
 # --- Eventos do Ciclo de Vida da Aplicação ---
 # Os handlers de startup e shutdown recebem o caminho do banco de dados.
-app.on_startup(lambda: inicializar_estado(DB_PATH))
-app.on_shutdown(lambda: salvar_estado_no_db(DB_PATH))
+app.on_startup(lambda: (print("--- main.py: app.on_startup executing ---"), inicializar_estado(DB_PATH)))
+app.on_shutdown(lambda: (print("--- main.py: app.on_shutdown executing ---"), salvar_estado_no_db(DB_PATH)))
+
+print("--- main.py: Lifecycle events registered ---")
 
 # A chamada ui.run() é usada apenas para desenvolvimento local.
 # Em produção no PythonAnywhere, o Uvicorn gerencia o servidor.
-# if __name__ in {"__main__", "__mp_main__"}:
-ui.run(host=HOST, port=8080, title='muWorkApp')
+if __name__ in {"__main__", "__mp_main__"}:
+    print("--- main.py: Running for local development via ui.run() ---")
+    ui.run(host=HOST, port=8080, title='muWorkApp')
