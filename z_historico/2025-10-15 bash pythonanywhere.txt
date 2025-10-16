@@ -90,5 +90,14 @@ pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01
 
 pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} hybrid_test:app'
 
-pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} --no-lifespan main:app'
+pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} --no-lifespan hybrid_test:app'
+
+pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} pure_fastapi_test:app'
+
+/home/YOURUSERNAME/.virtualenvs/my_venv/bin/uvicorn --app-dir /home/YOURUSERNAME/my_fastapi --uds ${DOMAIN_SOCKET} pure_fastapi_test:app
+
+
+pa website create --domain muwork01.pythonanywhere.com --command '/home/muWork01/251014niceguiV02/venv/bin/uvicorn --app-dir /home/muWork01/251014niceguiV02/src --uds ${DOMAIN_SOCKET} pure_fastapi_test:app'
+
+
 
