@@ -295,10 +295,6 @@ DEFAULT_ITENS = {
 async def build_ui():                                                                   ## --- Construção da Interface do Usuário (UI) ---
     documento_ativo = app.storage.general.get('documento_ativo')
 
-    # Notificação de estado restaurado (movida para cá para garantir que a UI esteja pronta)
-    if app.storage.general.get('evento_id_ativo'):
-        ui.notify("Estado da aplicação restaurado.", type='info')
-
     drawer_open = True  # estado global do drawer
 
     with ui.header(elevated=True).classes('bg-primary text-white'):                     ## Header: Meus Eventos
@@ -1521,9 +1517,9 @@ async def build_ui():                                                           
     else:
         ui.label("Crie um novo documento ou abra um existente na barra lateral para começar.").classes('m-4 text-xl')
 
-# --- Eventos do Ciclo de Vida da Aplicação ---
-# A inicialização do estado é movida para o evento on_connect para garantir que o servidor esteja pronto.
-app.on_connect(inicializar_estado)
+# --- Application Lifecycle Events ---
+# Initialize the application state when the server starts up.
+app.on_startup(inicializar_estado)
 
-# Salva o estado geral da aplicação quando o servidor é desligado.
+# Save the application's general state when the server shuts down.
 app.on_shutdown(salvar_estado_no_db)
