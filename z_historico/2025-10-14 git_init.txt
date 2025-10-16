@@ -1,0 +1,4 @@
+
+
+# descartar alterações 
+git checkout -- dbMu/financeiro.db

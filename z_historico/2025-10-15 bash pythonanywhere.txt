@@ -1,3 +1,6 @@
+# pythonAnywhere
+# run_server.py
+
 # Navegue até a pasta do projeto
 cd ~/251014niceguiV02
 
@@ -14,11 +17,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 
-
 # iniciar servidor nicegui
 
 # 1. limpeza porta 8000
 kill -9 $(netstat -ltnp 2>/dev/null | grep :8000 | awk '{print $7}' | cut -d'/' -f1)
+
 
 # 2. verifica
 netstat -ltnp 2>/dev/null | grep :8000
