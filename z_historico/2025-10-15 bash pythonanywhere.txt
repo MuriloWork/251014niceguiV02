@@ -13,11 +13,49 @@ source venv/bin/activate
 # Instale as dependências a partir do seu requirements.txt
 pip install -r requirements.txt
 
+
+
+# iniciar servidor nicegui
+
+# 1. limpeza porta 8000
+kill -9 $(netstat -ltnp 2>/dev/null | grep :8000 | awk '{print $7}' | cut -d'/' -f1)
+
+# 2. verifica
+netstat -ltnp 2>/dev/null | grep :8000
+
+# 3. Ativa o ambiente virtual
 source ~/251014niceguiV02/venv/bin/activate
 
-
-# 1. Ativa o ambiente virtual
-source ~/251014niceguiV02/venv/bin/activate
-
-# 2. Navega para a pasta do código e inicia o servidor
+# 4. Navega para a pasta do código e inicia o servidor
 cd ~/251014niceguiV02/src && python run_server.py
+
+
+
+[1] Explicação do que este comando faz, parte por parte:
+
+    netstat -ltnp 2>/dev/null:
+        netstat: Ferramenta de estatísticas de rede.
+        -ltnp: Mostra portas TCP (t) que estão "escutando" (l), com endereços numéricos (n) e o processo (p) que as está usando.
+        2>/dev/null: Redireciona qualquer mensagem de erro (como avisos de permissão) para o "buraco negro", para não poluir a saída.
+
+    | grep :8000:
+        Pega a saída do netstat e filtra, mostrando apenas a linha que contém :8000.
+
+    | awk '{print $7}':
+        Pega a linha filtrada e extrai apenas a sétima coluna, que se parece com 12345/python.
+
+    | cut -d'/' -f1:
+        Pega o texto 12345/python, o divide usando a barra / como separador, e pega a primeira parte, que é o ID do Processo (PID): 12345.
+    
+    kill -9 $(...):
+        kill -9: Comando para forçar a finalização de um processo.
+        $(...): Executa tudo o que está dentro dos parênteses primeiro, e o resultado (o PID 12345) é colocado no lugar. O comando final se torna kill -9 12345.
+
+    Se nenhum processo estiver usando a porta, o comando simplesmente não fará nada, o que é seguro.
+
+    possivel retorno = `kill: usage: kill [-s sigspec | -n signum | -sigspec] pid | jobspec ... or kill -l [sigspec]`
+        O erro kill: usage: kill [...] é a mensagem padrão que o comando kill exibe quando ele é executado sem um número de processo (PID) para finalizar.
+        Isso aconteceu porque a parte interna do seu comando, $(netstat ... | grep ... | awk ... | cut ...) não encontrou nenhum processo usando a porta 8000.
+        Como nenhum processo foi encontrado, a parte interna retornou um resultado vazio.
+        O comando final que o sistema tentou executar foi kill -9 (sem nada depois), o que é uma sintaxe inválida e por isso ele mostrou a mensagem de "como usar".
+

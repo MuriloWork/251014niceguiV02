@@ -5,7 +5,7 @@ from flask import Flask, request, Response
 
 # Aponta para o servidor NiceGUI que está rodando internamente no console.
 # Usar 127.0.0.1 é crucial para a comunicação interna no servidor.
-SERVER_URL = "http://127.0.0.1:8000"
+SERVER_URL = "http://127.0.0.1:8001"
 
 app = Flask(__name__)
 
