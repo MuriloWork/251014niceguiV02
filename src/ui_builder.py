@@ -120,6 +120,28 @@ def salvar_estado_no_db(DB_PATH):
     except Exception as e:
         print(f"Erro ao salvar estado da aplicação no DB: {e}")
 
+def inicializar_estado(DB_PATH):
+    """Carrega o estado da aplicação da tabela app_storage para app.storage.general."""
+    # Garante que as chaves essenciais existam com valores padrão.
+    for key in ['documento_ativo', 'evento_id_ativo', 'item_selecionado']:
+        if key not in app.storage.general:
+            app.storage.general[key] = None
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM app_storage")
+        rows = cursor.fetchall()
+        conn.close()
+
+        for key, encoded_value in rows:
+            pickled_value = base64.b64decode(encoded_value)
+            value = pickle.loads(pickled_value)
+            app.storage.general[key] = value
+
+    except Exception as e:
+        print(f"Erro ao inicializar estado do DB: {e}")
+
 
 def build_ui(DB_PATH):
     """
