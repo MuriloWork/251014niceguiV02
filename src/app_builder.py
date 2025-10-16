@@ -1,24 +1,11 @@
 from nicegui import ui, app
 import os
 import sqlite3
-import socket
 
 # Importe suas funções de UI e de dados do ui_builder
 from ui_builder import build_ui, salvar_estado_no_db, inicializar_estado
 
-def get_local_ip():
-    """Obtém o endereço IP local da máquina na rede."""
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1' # Fallback para localhost
-    finally:
-        s.close()
-    return IP
-
-def create_app():
+def create():
     """
     Esta função é a "fábrica" da sua aplicação.
     Ela configura tudo e retorna o objeto 'app' do NiceGUI.
@@ -27,11 +14,6 @@ def create_app():
     DB_PATH = '/home/muWork01/251014niceguiV02/dbMu/financeiro.db'
     db_dir = os.path.dirname(DB_PATH)
     os.makedirs(db_dir, exist_ok=True)
-
-    if 'PYTHONANYWHERE_DOMAIN' in os.environ:
-        HOST = '0.0.0.0'
-    else:
-        HOST = get_local_ip()
 
     # --- Inicialização do Banco de Dados ---
     def inicializar_db():
