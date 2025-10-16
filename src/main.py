@@ -73,5 +73,5 @@ app.on_shutdown(lambda: salvar_estado_no_db(DB_PATH))
 
 # A chamada ui.run() é usada apenas para desenvolvimento local.
 # Em produção no PythonAnywhere, o Uvicorn gerencia o servidor.
-if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(host=HOST, port=8080, title='muWorkApp')
+# if __name__ in {"__main__", "__mp_main__"}:
+ui.run(host=HOST, port=8080, title='muWorkApp')
