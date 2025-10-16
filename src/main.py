@@ -1528,4 +1528,5 @@ app.on_shutdown(salvar_estado_no_db)
 # seja chamado apenas quando o script é executado diretamente.
 # Isso é essencial para o desenvolvimento local e não interfere na implantação com Uvicorn.
 # if __name__ in {"__main__", "__mp_main__"}:
-ui.run(host=HOST, port=8080, reload=True, show=True, title='muWorkApp')
+# ui.run(host=HOST, port=8080, reload=True, show=True, title='muWorkApp')
+ui.run()
