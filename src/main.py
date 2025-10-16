@@ -291,8 +291,9 @@ DEFAULT_ITENS = {
     "tags": ""
 }
 
-def setup_ui():
-    documento_ativo = app.storage.general.get('documento_ativo')
+@ui.page('/')
+def main_page():
+    documento_ativo = app.storage.general.get('documento_ativo') # Carrega o documento ativo do estado da aplicação
 
     drawer_open = True  # estado global do drawer
 
@@ -1515,11 +1516,6 @@ def setup_ui():
 
     else:
         ui.label("Crie um novo documento ou abra um existente na barra lateral para começar.").classes('m-4 text-xl')
-
-# --- Ponto de Entrada da UI ---
-# Registra a função que constrói a interface do usuário para a rota raiz.
-# Isso garante que a UI só seja construída quando um cliente se conecta.
-ui.page('/')(setup_ui)
 
 # --- Application Lifecycle Events ---
 # Initialize the application state when the server starts up.
